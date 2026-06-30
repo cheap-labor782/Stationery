@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
   <title>文具領取 · 高雄特教</title>
   <style>
+    /* 樣式保持不變，略 ... */
     * {
       box-sizing: border-box;
       margin: 0;
@@ -288,7 +289,8 @@
       <h1>📎 文具領取</h1>
       <div class="school">高雄市立高雄特殊教育學校</div>
     </div>
-    <div class="date-badge">115年6月</div>
+    <!-- 日期將由 JavaScript 動態產生 -->
+    <div class="date-badge" id="dateBadge">載入中...</div>
   </div>
 
   <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 8px;">
@@ -308,6 +310,18 @@
 
   <script>
     (function() {
+      // ---------- 自動更新日期 ----------
+      function updateDateBadge() {
+        const now = new Date();
+        // 民國年 = 西元年 - 1911
+        const taiwanYear = now.getFullYear() - 1911;
+        const month = now.getMonth() + 1; // getMonth() 從 0 開始
+        const dateBadge = document.getElementById('dateBadge');
+        if (dateBadge) {
+          dateBadge.textContent = `${taiwanYear}年${month}月`;
+        }
+      }
+
       // ---------- 資料來源：11506 物品收發&盤存月報表 (品項1~49) ----------
       const ITEMS = [
         { id: 1, name: '棉手套', unit: '雙', stock: 576 },
@@ -370,9 +384,8 @@
       };
 
       // ---------- 狀態 ----------
-      let items = [];                 // { id, name, unit, stock, qtyToTake }
+      let items = [];
       let totalStock = 0;
-      // 復原記錄：儲存上一次領取動作 { itemId, qty, prevStock, name, unit }
       let lastAction = null;
 
       // DOM
@@ -397,12 +410,10 @@
         totalSpan.textContent = totalStock;
       }
 
-      // 更新復原按鈕狀態
       function updateUndoButton() {
         undoBtn.disabled = (lastAction === null);
       }
 
-      // 復原上一次領取
       function undoLastTake() {
         if (!lastAction) {
           showToast('⚠️ 沒有可復原的動作', 1500);
@@ -416,19 +427,14 @@
           updateUndoButton();
           return;
         }
-        // 復原：將庫存加回
         targetItem.stock = prevStock;
-        // 同時將 qtyToTake 歸零（避免殘留）
         targetItem.qtyToTake = 0;
-        // 清除 lastAction
         lastAction = null;
         updateUndoButton();
-        // 重新渲染
         renderItems();
         showToast(`↩ 已復原「${name}」${qty} ${unit}`, 1800);
       }
 
-      // 渲染全部卡片
       function renderItems() {
         if (!container) return;
         container.innerHTML = '';
@@ -455,7 +461,6 @@
           infoDiv.appendChild(unitDiv);
           infoDiv.appendChild(stockDiv);
 
-          // 數量控制
           const controlDiv = document.createElement('div');
           controlDiv.className = 'quantity-control';
 
@@ -477,13 +482,11 @@
           controlDiv.appendChild(qtySpan);
           controlDiv.appendChild(plusBtn);
 
-          // 領取按鈕
           const takeBtn = document.createElement('button');
           takeBtn.className = 'action-take';
           takeBtn.textContent = '領取';
           takeBtn.disabled = (item.qtyToTake <= 0 || item.stock < item.qtyToTake);
 
-          // 更新按鈕狀態 & 顯示
           function updateTakeButton() {
             const qty = item.qtyToTake || 0;
             takeBtn.disabled = (qty <= 0 || item.stock < qty);
@@ -492,7 +495,6 @@
             updateTotalStock();
           }
 
-          // 事件：減少
           minusBtn.addEventListener('click', (e) => {
             e.preventDefault();
             if (item.qtyToTake > 0) {
@@ -501,7 +503,6 @@
             }
           });
 
-          // 事件：增加
           plusBtn.addEventListener('click', (e) => {
             e.preventDefault();
             if (item.stock > 0) {
@@ -517,7 +518,6 @@
             }
           });
 
-          // 事件：領取（加入確認 & 復原記錄）
           takeBtn.addEventListener('click', (e) => {
             e.preventDefault();
             const qty = item.qtyToTake || 0;
@@ -530,12 +530,10 @@
               return;
             }
 
-            // 簡單確認（按錯防護）
             if (!confirm(`確定要領取「${item.name}」${qty} ${item.unit} 嗎？`)) {
               return;
             }
 
-            // 記錄復原資訊 (先保存再扣減)
             lastAction = {
               itemId: item.id,
               qty: qty,
@@ -545,9 +543,8 @@
             };
             updateUndoButton();
 
-            // 執行扣減
             item.stock -= qty;
-            item.qtyToTake = 0;   // 歸零
+            item.qtyToTake = 0;
             updateTakeButton();
             showToast(`✅ 已領取 ${qty} ${item.unit}「${item.name}」`, 1800);
             if (item.stock === 0) {
@@ -555,7 +552,6 @@
             }
           });
 
-          // 組合卡片
           const rightWrapper = document.createElement('div');
           rightWrapper.style.cssText = 'display: flex; align-items: center; gap: 4px; margin-left: auto; flex-wrap: wrap;';
           rightWrapper.appendChild(controlDiv);
@@ -569,7 +565,6 @@
         updateUndoButton();
       }
 
-      // ---------- 重置 ----------
       function resetToOriginal() {
         items = ITEMS.map(it => ({
           ...it,
@@ -583,6 +578,9 @@
 
       // ---------- 初始化 ----------
       function init() {
+        // 更新日期
+        updateDateBadge();
+
         resetToOriginal();
 
         document.getElementById('resetItemsBtn').addEventListener('click', (e) => {
@@ -592,7 +590,6 @@
           }
         });
 
-        // 復原按鈕
         undoBtn.addEventListener('click', (e) => {
           e.preventDefault();
           undoLastTake();
