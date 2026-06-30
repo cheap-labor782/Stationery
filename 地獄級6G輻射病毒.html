@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <title>文具領取 · 高雄特教</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      background: #f5f7fb;
+      padding: 16px 12px 100px;
+      color: #1e293b;
+    }
+    .app-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .app-header h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #0f3b5e;
+      letter-spacing: 0.5px;
+    }
+    .app-header .school {
+      font-size: 0.9rem;
+      background: #d9e6f2;
+      padding: 4px 14px;
+      border-radius: 30px;
+      color: #1a4b6d;
+    }
+    .date-badge {
+      background: white;
+      padding: 6px 16px;
+      border-radius: 40px;
+      font-size: 0.8rem;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+      border: 1px solid #e9edf4;
+      color: #475569;
+      margin-top: 6px;
+    }
+    .legend-note {
+      background: #eef2f9;
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-size: 0.7rem;
+      color: #334155;
+      display: inline-block;
+      margin: 8px 0 12px;
+    }
+    .item-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .item-card {
+      background: white;
+      border-radius: 20px;
+      padding: 14px 16px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02), 0 1px 2px rgba(0,0,0,0.04);
+      border: 1px solid #eef2f6;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      transition: all 0.1s;
+    }
+    .item-info {
+      flex: 2 1 140px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .item-name {
+      font-weight: 600;
+      font-size: 1rem;
+      line-height: 1.4;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .item-spec {
+      font-size: 0.7rem;
+      color: #64748b;
+      background: #f1f5f9;
+      padding: 0 8px;
+      border-radius: 30px;
+      display: inline-block;
+      white-space: nowrap;
+    }
+    .item-unit {
+      font-size: 0.75rem;
+      color: #64748b;
+      background: #f8fafc;
+      padding: 2px 10px 2px 0;
+      border-radius: 30px;
+    }
+    .item-stock {
+      font-size: 0.7rem;
+      color: #475569;
+      background: #f1f5f9;
+      padding: 2px 12px;
+      border-radius: 30px;
+      display: inline-block;
+      margin-top: 4px;
+      width: fit-content;
+    }
+    .quantity-control {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin: 6px 0 4px;
+      flex-wrap: wrap;
+    }
+    .qty-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 40px;
+      border: none;
+      background: #eef2f6;
+      font-size: 1.5rem;
+      font-weight: 400;
+      color: #1e293b;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: 0.1s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+      touch-action: manipulation;
+    }
+    .qty-btn:active {
+      background: #d1d9e6;
+      transform: scale(0.94);
+    }
+    .qty-display {
+      min-width: 40px;
+      text-align: center;
+      font-weight: 600;
+      font-size: 1.2rem;
+      color: #0f3b5e;
+      padding: 0 4px;
+    }
+    .action-take {
+      margin-left: auto;
+      background: #1a5a8c;
+      border: none;
+      color: white;
+      padding: 8px 18px;
+      border-radius: 40px;
+      font-weight: 500;
+      font-size: 0.9rem;
+      letter-spacing: 0.3px;
+      box-shadow: 0 4px 8px rgba(26, 90, 140, 0.15);
+      cursor: pointer;
+      transition: 0.1s;
+      touch-action: manipulation;
+      white-space: nowrap;
+    }
+    .action-take:active {
+      background: #0e3f62;
+      transform: scale(0.96);
+    }
+    .action-take:disabled {
+      opacity: 0.4;
+      box-shadow: none;
+      pointer-events: none;
+    }
+    .status-badge {
+      font-size: 0.65rem;
+      background: #e9f0f9;
+      color: #1a4b6d;
+      border-radius: 30px;
+      padding: 2px 12px;
+      margin-left: 6px;
+    }
+    .footer-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: white;
+      padding: 12px 16px;
+      border-top: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      backdrop-filter: blur(4px);
+      box-shadow: 0 -4px 12px rgba(0,0,0,0.02);
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .footer-bar .total-info {
+      font-size: 0.85rem;
+      color: #334155;
+    }
+    .footer-bar .total-info span {
+      font-weight: 600;
+      color: #0f3b5e;
+    }
+    .footer-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .reset-btn, .undo-btn {
+      background: #f1f5f9;
+      border: none;
+      padding: 6px 18px;
+      border-radius: 40px;
+      font-size: 0.85rem;
+      color: #475569;
+      cursor: pointer;
+      touch-action: manipulation;
+      transition: 0.1s;
+    }
+    .reset-btn:active, .undo-btn:active {
+      background: #dbe1ea;
+      transform: scale(0.96);
+    }
+    .undo-btn {
+      background: #e6edf6;
+      color: #1a4b6d;
+      font-weight: 500;
+    }
+    .undo-btn:disabled {
+      opacity: 0.3;
+      pointer-events: none;
+    }
+    .toast-message {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1e293b;
+      color: white;
+      padding: 10px 24px;
+      border-radius: 60px;
+      font-size: 0.9rem;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+      z-index: 999;
+      opacity: 0;
+      transition: opacity 0.2s;
+      pointer-events: none;
+      white-space: nowrap;
+      max-width: 90%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .toast-message.show {
+      opacity: 1;
+    }
+    @media (max-width: 480px) {
+      .item-card {
+        padding: 12px 14px;
+      }
+      .qty-btn {
+        width: 38px;
+        height: 38px;
+        font-size: 1.3rem;
+      }
+      .action-take {
+        padding: 6px 14px;
+        font-size: 0.8rem;
+      }
+      .footer-bar {
+        padding: 10px 12px;
+      }
+      .reset-btn, .undo-btn {
+        padding: 4px 14px;
+        font-size: 0.75rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="toast" class="toast-message"></div>
+
+  <div class="app-header">
+    <div>
+      <h1>📎 文具領取</h1>
+      <div class="school">高雄市立高雄特殊教育學校</div>
+    </div>
+    <div class="date-badge">115年6月</div>
+  </div>
+
+  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 8px;">
+    <div class="legend-note">⚡ 點擊「領取」扣減庫存 · 可復原</div>
+    <div style="font-size:0.75rem; color:#64748b;">庫存即時更新</div>
+  </div>
+
+  <div id="itemContainer" class="item-grid"></div>
+
+  <div class="footer-bar">
+    <div class="total-info">📦 本月結存 <span id="totalStockCount">0</span> 項</div>
+    <div class="footer-actions">
+      <button class="undo-btn" id="undoBtn" disabled>↩ 復原</button>
+      <button class="reset-btn" id="resetItemsBtn">↻ 重整</button>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      // ---------- 資料來源：11506 物品收發&盤存月報表 (品項1~49) ----------
+      const ITEMS = [
+        { id: 1, name: '棉手套', unit: '雙', stock: 576 },
+        { id: 2, name: 'A4加厚資料袋(11孔)', unit: '包', stock: 4 },
+        { id: 3, name: '強力布膠帶', unit: '個', stock: 3 },
+        { id: 4, name: '剪刀', unit: '支', stock: 7 },
+        { id: 5, name: '美工刀', unit: '支', stock: 10 },
+        { id: 6, name: '雙面膠帶12mm', unit: '條', stock: 16 },
+        { id: 7, name: '迴紋針50mm', unit: '盒', stock: 2 },
+        { id: 8, name: '迴紋針28mm', unit: '盒', stock: 36 },
+        { id: 9, name: '迴紋針25.5mm(三角)', unit: '盒', stock: 8 },
+        { id: 10, name: '自動印章墨水(紅)', unit: '罐', stock: 14 },
+        { id: 11, name: '自動印章墨水(藍)', unit: '罐', stock: 17 },
+        { id: 12, name: '釘書針', unit: '盒', stock: 43 },
+        { id: 13, name: '橡皮擦', unit: '個', stock: 21 },
+        { id: 14, name: '膠水', unit: '個', stock: 14 },
+        { id: 15, name: '15cm透明尺', unit: '個', stock: 19 },
+        { id: 16, name: '4號電池', unit: '個', stock: 63 },
+        { id: 17, name: '3號電池', unit: '個', stock: 61 },
+        { id: 18, name: '筆筒膠帶台', unit: '個', stock: 1 },
+        { id: 19, name: '便利貼', unit: '本', stock: 17 },
+        { id: 20, name: '3M-584非抽取式標籤', unit: '本', stock: 28 },
+        { id: 21, name: '5mm修正帶', unit: '個', stock: 46 },
+        { id: 22, name: '削鉛筆機', unit: '個', stock: 1 },
+        { id: 23, name: '釘書機', unit: '個', stock: 11 },
+        { id: 24, name: '利百代鉛筆', unit: '支', stock: 17 },
+        { id: 25, name: '北極熊-雙面泡棉膠帶', unit: '捲', stock: 32 },
+        { id: 26, name: '白板筆(紅)', unit: '支', stock: 11 },
+        { id: 27, name: '白板筆(黑)', unit: '支', stock: 20 },
+        { id: 28, name: '白板筆(藍)', unit: '支', stock: 11 },
+        { id: 29, name: '極細油性筆(紅)', unit: '支', stock: 7 },
+        { id: 30, name: 'O.B 0.5mm原子筆(藍)', unit: '支', stock: 44 },
+        { id: 31, name: 'O.B 0.5mm原子筆(黑)', unit: '支', stock: 18 },
+        { id: 32, name: 'O.B 0.5mm原子筆(紅)', unit: '支', stock: 54 },
+        { id: 33, name: 'Pentel水性螢光筆(黃)', unit: '支', stock: 10 },
+        { id: 34, name: 'Pentel水性螢光筆(藍)', unit: '支', stock: 19 },
+        { id: 35, name: 'Pentel水性螢光筆(橘)', unit: '支', stock: 15 },
+        { id: 36, name: 'Pentel水性螢光筆(桃紅)', unit: '支', stock: 15 },
+        { id: 37, name: 'Pentel水性螢光筆(綠)', unit: '支', stock: 11 },
+        { id: 38, name: 'PILOT 0.4mm原子筆(黑)', unit: '支', stock: 15 },
+        { id: 39, name: 'PILOT 0.4mm原子筆(藍)', unit: '支', stock: 13 },
+        { id: 40, name: '雄獅雙頭奇異筆(黑/藍)', unit: '支', stock: 28 },
+        { id: 41, name: '透明膠帶', unit: '卷', stock: 24 },
+        { id: 42, name: '彩色長尾夾25mm(24入)', unit: '盒', stock: 5 },
+        { id: 43, name: '41mm長尾夾', unit: '盒', stock: 1 },
+        { id: 44, name: '32mm長尾夾', unit: '盒', stock: 25 },
+        { id: 45, name: '25mm長尾夾', unit: '盒', stock: 53 },
+        { id: 46, name: '15mm長尾夾', unit: '盒', stock: 12 },
+        { id: 47, name: 'A4壓克力板夾', unit: '個', stock: 5 },
+        { id: 48, name: '延長線', unit: '個', stock: 2 },
+        { id: 49, name: '時鐘', unit: '個', stock: 6 }
+      ];
+
+      const SPEC_NOTES = {
+        6: '12mm/18mm',
+        14: '口紅膠/膠水',
+        21: '替換帶/修正帶',
+        40: '黑/藍',
+        41: '18mm/48mm'
+      };
+
+      // ---------- 狀態 ----------
+      let items = [];                 // { id, name, unit, stock, qtyToTake }
+      let totalStock = 0;
+      // 復原記錄：儲存上一次領取動作 { itemId, qty, prevStock, name, unit }
+      let lastAction = null;
+
+      // DOM
+      const container = document.getElementById('itemContainer');
+      const totalSpan = document.getElementById('totalStockCount');
+      const undoBtn = document.getElementById('undoBtn');
+      const toast = document.getElementById('toast');
+      let toastTimer = null;
+
+      // ---------- 工具 ----------
+      function showToast(msg, duration = 2000) {
+        if (toastTimer) clearTimeout(toastTimer);
+        toast.textContent = msg;
+        toast.classList.add('show');
+        toastTimer = setTimeout(() => {
+          toast.classList.remove('show');
+        }, duration);
+      }
+
+      function updateTotalStock() {
+        totalStock = items.reduce((sum, it) => sum + it.stock, 0);
+        totalSpan.textContent = totalStock;
+      }
+
+      // 更新復原按鈕狀態
+      function updateUndoButton() {
+        undoBtn.disabled = (lastAction === null);
+      }
+
+      // 復原上一次領取
+      function undoLastTake() {
+        if (!lastAction) {
+          showToast('⚠️ 沒有可復原的動作', 1500);
+          return;
+        }
+        const { itemId, qty, prevStock, name, unit } = lastAction;
+        const targetItem = items.find(it => it.id === itemId);
+        if (!targetItem) {
+          showToast('⚠️ 找不到該品項，無法復原', 1800);
+          lastAction = null;
+          updateUndoButton();
+          return;
+        }
+        // 復原：將庫存加回
+        targetItem.stock = prevStock;
+        // 同時將 qtyToTake 歸零（避免殘留）
+        targetItem.qtyToTake = 0;
+        // 清除 lastAction
+        lastAction = null;
+        updateUndoButton();
+        // 重新渲染
+        renderItems();
+        showToast(`↩ 已復原「${name}」${qty} ${unit}`, 1800);
+      }
+
+      // 渲染全部卡片
+      function renderItems() {
+        if (!container) return;
+        container.innerHTML = '';
+        items.forEach((item) => {
+          const card = document.createElement('div');
+          card.className = 'item-card';
+
+          const infoDiv = document.createElement('div');
+          infoDiv.className = 'item-info';
+
+          const nameDiv = document.createElement('div');
+          nameDiv.className = 'item-name';
+          nameDiv.innerHTML = `${item.name} <span class="item-spec">${SPEC_NOTES[item.id] || ''}</span>`;
+          
+          const unitDiv = document.createElement('div');
+          unitDiv.className = 'item-unit';
+          unitDiv.textContent = `單位：${item.unit}`;
+
+          const stockDiv = document.createElement('div');
+          stockDiv.className = 'item-stock';
+          stockDiv.textContent = `📦 庫存 ${item.stock}`;
+
+          infoDiv.appendChild(nameDiv);
+          infoDiv.appendChild(unitDiv);
+          infoDiv.appendChild(stockDiv);
+
+          // 數量控制
+          const controlDiv = document.createElement('div');
+          controlDiv.className = 'quantity-control';
+
+          const minusBtn = document.createElement('button');
+          minusBtn.className = 'qty-btn';
+          minusBtn.textContent = '−';
+          minusBtn.setAttribute('aria-label', '減少數量');
+
+          const qtySpan = document.createElement('span');
+          qtySpan.className = 'qty-display';
+          qtySpan.textContent = item.qtyToTake || 0;
+
+          const plusBtn = document.createElement('button');
+          plusBtn.className = 'qty-btn';
+          plusBtn.textContent = '+';
+          plusBtn.setAttribute('aria-label', '增加數量');
+
+          controlDiv.appendChild(minusBtn);
+          controlDiv.appendChild(qtySpan);
+          controlDiv.appendChild(plusBtn);
+
+          // 領取按鈕
+          const takeBtn = document.createElement('button');
+          takeBtn.className = 'action-take';
+          takeBtn.textContent = '領取';
+          takeBtn.disabled = (item.qtyToTake <= 0 || item.stock < item.qtyToTake);
+
+          // 更新按鈕狀態 & 顯示
+          function updateTakeButton() {
+            const qty = item.qtyToTake || 0;
+            takeBtn.disabled = (qty <= 0 || item.stock < qty);
+            qtySpan.textContent = qty;
+            stockDiv.textContent = `📦 庫存 ${item.stock}`;
+            updateTotalStock();
+          }
+
+          // 事件：減少
+          minusBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (item.qtyToTake > 0) {
+              item.qtyToTake -= 1;
+              updateTakeButton();
+            }
+          });
+
+          // 事件：增加
+          plusBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (item.stock > 0) {
+              const next = (item.qtyToTake || 0) + 1;
+              if (next <= item.stock) {
+                item.qtyToTake = next;
+                updateTakeButton();
+              } else {
+                showToast(`⚠️ 庫存不足，僅剩 ${item.stock} ${item.unit}`);
+              }
+            } else {
+              showToast('⚠️ 此項已無庫存');
+            }
+          });
+
+          // 事件：領取（加入確認 & 復原記錄）
+          takeBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const qty = item.qtyToTake || 0;
+            if (qty <= 0) {
+              showToast('請先選擇數量');
+              return;
+            }
+            if (qty > item.stock) {
+              showToast(`⚠️ 庫存不足，剩 ${item.stock} ${item.unit}`);
+              return;
+            }
+
+            // 簡單確認（按錯防護）
+            if (!confirm(`確定要領取「${item.name}」${qty} ${item.unit} 嗎？`)) {
+              return;
+            }
+
+            // 記錄復原資訊 (先保存再扣減)
+            lastAction = {
+              itemId: item.id,
+              qty: qty,
+              prevStock: item.stock,
+              name: item.name,
+              unit: item.unit
+            };
+            updateUndoButton();
+
+            // 執行扣減
+            item.stock -= qty;
+            item.qtyToTake = 0;   // 歸零
+            updateTakeButton();
+            showToast(`✅ 已領取 ${qty} ${item.unit}「${item.name}」`, 1800);
+            if (item.stock === 0) {
+              showToast(`⚠️ 「${item.name}」已無庫存`, 2500);
+            }
+          });
+
+          // 組合卡片
+          const rightWrapper = document.createElement('div');
+          rightWrapper.style.cssText = 'display: flex; align-items: center; gap: 4px; margin-left: auto; flex-wrap: wrap;';
+          rightWrapper.appendChild(controlDiv);
+          rightWrapper.appendChild(takeBtn);
+
+          card.appendChild(infoDiv);
+          card.appendChild(rightWrapper);
+          container.appendChild(card);
+        });
+        updateTotalStock();
+        updateUndoButton();
+      }
+
+      // ---------- 重置 ----------
+      function resetToOriginal() {
+        items = ITEMS.map(it => ({
+          ...it,
+          qtyToTake: 0
+        }));
+        lastAction = null;
+        updateUndoButton();
+        renderItems();
+        showToast('🔄 已重整為原始庫存', 1500);
+      }
+
+      // ---------- 初始化 ----------
+      function init() {
+        resetToOriginal();
+
+        document.getElementById('resetItemsBtn').addEventListener('click', (e) => {
+          e.preventDefault();
+          if (confirm('重整將清除所有未領取的數量，並恢復原始庫存，確定嗎？')) {
+            resetToOriginal();
+          }
+        });
+
+        // 復原按鈕
+        undoBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          undoLastTake();
+        });
+      }
+
+      if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        init();
+      } else {
+        document.addEventListener('DOMContentLoaded', init);
+      }
+    })();
+  </script>
+</body>
+</html>
